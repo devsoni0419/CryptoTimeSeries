@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(""))
 from src.arima_model import arima_forecast
 from src.sarima_model import sarima_forecast
 from src.prophet_model import prophet_forecast
-
+from src.lstm_model import lstm_forecast
 
 st.set_page_config(
     page_title="Time Series Forecast Dashboard",
@@ -106,3 +106,36 @@ fig_prophet.add_trace(go.Scatter(
 ))
 fig_prophet.update_layout(height=350)
 st.plotly_chart(fig_prophet, use_container_width=True)
+
+st.subheader("LSTM Forecast")
+
+lstm_df = lstm_forecast(df, forecast_days=FORECAST_DAYS)
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=df.index[-100:],
+    y=df["Close"].iloc[-100:],
+    name="Recent Actual",
+    line=dict(color="lightblue")
+))
+
+fig.add_trace(go.Scatter(
+    x=lstm_df["Date"],
+    y=lstm_df["LSTM_Forecast"],
+    name="LSTM Forecast",
+    line=dict(color="orange")
+))
+
+fig.update_layout(
+    template="plotly_dark",
+    xaxis_title="Date",
+    yaxis_title="Price"
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+st.info(
+    "LSTM forecast is a demonstration output. "
+    "Recursive multi-step prediction may accumulate error."
+)

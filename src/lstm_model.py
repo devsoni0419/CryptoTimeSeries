@@ -5,32 +5,27 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 
 def lstm_forecast(df, forecast_days=30):
-    data = df[["Close"]].copy()
-    data["Close"] = pd.to_numeric(data["Close"], errors="coerce")
-    data = data.dropna()
+    data = df[["Return"]].dropna()
 
     scaler = MinMaxScaler()
     scaled = scaler.fit_transform(data)
 
-    X = []
-    y = []
-
-    lookback = 60
+    lookback = 30
+    X, y = [], []
 
     for i in range(lookback, len(scaled)):
         X.append(scaled[i - lookback:i])
         y.append(scaled[i])
 
-    X = np.array(X)
-    y = np.array(y)
+    X, y = np.array(X), np.array(y)
 
     model = Sequential()
-    model.add(LSTM(50, return_sequences=True, input_shape=(X.shape[1], 1)))
-    model.add(LSTM(50))
+    model.add(LSTM(64, return_sequences=True, input_shape=(X.shape[1], 1)))
+    model.add(LSTM(64))
     model.add(Dense(1))
     model.compile(optimizer="adam", loss="mse")
 
-    model.fit(X, y, epochs=3, batch_size=32, verbose=0)
+    model.fit(X, y, epochs=25, batch_size=32, verbose=0)
 
     last_seq = scaled[-lookback:]
     preds = []

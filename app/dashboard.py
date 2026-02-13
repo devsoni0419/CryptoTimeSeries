@@ -36,16 +36,26 @@ fig_hist.update_layout(template="plotly_dark", xaxis_title="Date", yaxis_title="
 st.plotly_chart(fig_hist, use_container_width=True)
 
 st.subheader("ARIMA Forecast")
-recent = df["Close"].iloc[-200:]
-arima = ARIMA(recent, order=(5, 1, 0)).fit()
-arima_forecast = arima.forecast(FORECAST_DAYS)
-arima_dates = pd.date_range(recent.index[-1] + timedelta(days=1), periods=FORECAST_DAYS)
 
-fig_arima = go.Figure()
-fig_arima.add_trace(go.Scatter(x=recent.index, y=recent, name="Recent Actual"))
-fig_arima.add_trace(go.Scatter(x=arima_dates, y=arima_forecast, name="ARIMA Forecast"))
-fig_arima.update_layout(template="plotly_dark")
-st.plotly_chart(fig_arima, use_container_width=True)
+recent = df["Close"].iloc[-200:].astype(float)
+
+arima = ARIMA(recent, order=(5, 1, 0))
+arima_model = arima.fit()
+
+arima_forecast = arima_model.forecast(FORECAST_DAYS)
+
+arima_dates = pd.date_range(
+    start=recent.index[-1] + pd.Timedelta(days=1),
+    periods=FORECAST_DAYS,
+    freq="D"
+)
+
+arima_df = pd.DataFrame(
+    {"ARIMA Forecast": arima_forecast},
+    index=arima_dates
+)
+
+st.line_chart(arima_df)
 
 st.subheader("SARIMA Forecast")
 sarima = SARIMAX(recent, order=(1, 1, 1), seasonal_order=(1, 1, 1, 12)).fit(disp=False)
